@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: ArtikliKartice.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: ArtikliKartice.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, {useEffect, useState} from "react";
+import {Button, Col, FormLabel, Row} from "react-bootstrap";
+
+import Form from "react-bootstrap/Form";
+import axios from "axios";
+import Modal from "react-bootstrap/Modal";
+
+
+/**
+ * Ova komponenta prikazuje modal, koji se prikazuje klikon na button naruci, te koja sluzi
+ * da potvrdimo da sigurno zelimo narudzbu koju smo unijeli.
+ * @param props
+ * @returns {JSX.Element}
+ * @constructor
+ */
+function MyVerticallyCenteredModal(props) {
+
+    function sacuvaj(){
+
+            axios.post('http://127.0.0.1:8000/shopping/novaNarudzba/',{
+                korisnik:props.id,
+                proizvod:props.opis,
+                cijena:props.cijena*props.kolicina,
+                kolicina:props.kolicina,
+                velicina:props.velicina
+
+            }).then(
+                (response)=>{
+                    console.log(response)
+                    props.onHide()
+                },
+                (error) =>{
+                    console.log(error)
+                }
+            )
+
+
+    }
+
+
+    return (
+        &lt;Modal
+            {...props}
+            size="lg"
+            aria-labelledby="contained-modal-title-vcenter"
+            centered
+        >
+            &lt;Modal.Header closeButton>
+                &lt;Modal.Title id="contained-modal-title-vcenter">
+                    Potvrdite narudzbu
+                &lt;/Modal.Title>
+            &lt;/Modal.Header>
+            &lt;Modal.Body>
+                Da li ste sigurni da zelite sljedecu narudzbu:&lt;br/>
+                Artikal: {props.opis}&lt;br/>
+                Velicina: {props.velicina}&lt;br/>
+                Kolicina: {props.kolicina}&lt;br/>
+                Ukupna cijena: {props.kolicina*props.cijena} KM
+
+
+            &lt;/Modal.Body>
+            &lt;Modal.Footer>
+                &lt;Button onClick={props.onHide} variant="danger">Zatvori&lt;/Button>
+                &lt;Button onClick={sacuvaj} variant="success">Potvrdi&lt;/Button>
+            &lt;/Modal.Footer>
+        &lt;/Modal>
+    );
+}
+
+/**
+ * ArtikliKartice komponenta nam definise kako ce se prikazivati informacije za pojedini proizvod.
+ * Za svaki proizvod prikazujemo njegovu sliku, opis, i cijenu. Ukoliko je prijavljen kupac imat cemo
+ * i input elemente za velicinu i kolicinu proizvoda i button na ciji klik moze naruciti trenutni proizvod,
+ * dok ukoliko je prijavljen administrator ovih input elemenata nece biti, vec ce umjesto njih stajati
+ * dva button-a za brisanje proizvoda, kao i za promjenu bilo kojeg parametra proizvoda.
+ * @param id
+ * @param opis
+ * @param cijena
+ * @param slika
+ * @param tip
+ * @param idProizvoda
+ * @param ucitaj
+ * @returns {JSX.Element}
+ * @constructor
+ */
+function ArtikliKartice({id,opis,cijena,slika,tip,idProizvoda,ucitaj}){
+    const [kolicina,setKolicina]=useState(1)
+    const [velicina,setVelicina]=useState("XS")
+    const[modal,setModal]=useState(false)
+    const[naziv,setNaziv]=useState(opis)
+    const[cijenaNovo,setCijena]=useState(cijena)
+    const [forma,setForma]=useState(false)
+    const [putanja,setPutanja]=useState("../../../")
+
+
+    function naruci(){
+        setModal(true)
+        console.log("idd"+id)
+    }
+
+    function izbrisi(){
+        axios.post('http://127.0.0.1:8000/shopping/izbrisiProizvod/',{
+            id:idProizvoda
+
+        }).then(
+            (response)=>{
+                console.log(response)
+                ucitaj()
+
+            },
+            (error) =>{
+                console.log(error)
+            }
+        )
+
+    }
+
+    function promijeni(){
+        axios.post('http://127.0.0.1:8000/shopping/promijeniProizvod/',{
+            id:idProizvoda,
+            cijena:cijenaNovo,
+            naziv:naziv
+
+        }).then(
+            (response)=>{
+                console.log(response)
+                ucitaj()
+                setForma(!forma)
+
+            },
+            (error) =>{
+                console.log(error)
+            }
+        )
+
+    }
+
+
+
+    return(
+        &lt;Col xs={4}>
+            &lt;div className="kartica">
+
+                {/*&lt;img className="slika" src={slika}/>*/}
+
+                &lt;img className="slika" src={putanja+slika}/>{console.log(putanja+slika)}
+
+                &lt;p>Naziv: {opis}&lt;/p>
+                &lt;p>Cijena: {cijena} KM&lt;/p>
+                {tip==="Kupac"? &lt;div>
+                &lt;Form className="">
+                    &lt;Form.Group controlId="velicina.ControlSelect1">
+                        &lt;Form.Label>Veličina&lt;/Form.Label>
+                        &lt;Form.Control as="select" onChange={event => setVelicina(event.target.value)}>
+                            &lt;option value="XS">XS&lt;/option>
+                            &lt;option value="S">S&lt;/option>
+                            &lt;option value="M">M&lt;/option>
+                            &lt;option value="L">L&lt;/option>
+                            &lt;option value="XL">XL&lt;/option>
+
+                        &lt;/Form.Control>
+                    &lt;/Form.Group>
+
+                    &lt;Form.Group controlId="formBasicPassword">
+                        &lt;Form.Label>Količina&lt;/Form.Label>
+                        &lt;Form.Control type="number" min="1" onChange={event => setKolicina(event.target.value)} />
+                    &lt;/Form.Group>
+
+
+
+                    &lt;Button variant="primary" onClick={naruci} >
+                        Naruči
+                    &lt;/Button>
+                    &lt;MyVerticallyCenteredModal
+                        id={id}
+                        show={modal}
+                        kolicina={kolicina}
+                        opis={opis}
+                        cijena={cijena}
+                        velicina={velicina}
+                        onHide={() => setModal(false)}
+                    />
+                &lt;/Form>&lt;/div> : &lt;div>&lt;/div>}{
+                tip==="Admin"? &lt;div>&lt;Button variant="danger" onClick={izbrisi} >
+                    Izbriši
+                &lt;/Button>
+                    &lt;Button className="promjena" variant="success" onClick={()=> setForma(!forma)} >
+                        Promijeni
+                    &lt;/Button>
+                    {forma?
+                    &lt;Form >
+
+                        &lt;Form.Group controlId="formBasicEmail">
+                            &lt;Form.Label>Naziv&lt;/Form.Label>
+                            &lt;Form.Control type="text" placeholder="Unesite novi naziv" onChange={event => setNaziv(event.target.value)} />
+
+                        &lt;/Form.Group>
+
+                        &lt;Form.Group controlId="formBasicPassword">
+                            &lt;Form.Label>Cijena&lt;/Form.Label>
+                            &lt;Form.Control type="text" placeholder="Unesite novu cijenu" onChange={event => setCijena(event.target.value)}/>
+                        &lt;/Form.Group>
+
+
+                        &lt;Button variant="primary" onClick={promijeni}>
+                            Promijeni
+                        &lt;/Button>
+                    &lt;/Form>:&lt;div>&lt;/div>}
+                &lt;/div>:&lt;div>&lt;/div>
+            }
+            &lt;/div>
+        &lt;/Col>
+    )
+
+}
+
+export default ArtikliKartice</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="ArtikliKartice.html">ArtikliKartice</a></li><li><a href="MyVerticallyCenteredModal.html">MyVerticallyCenteredModal</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Mon Jul 12 2021 13:33:49 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

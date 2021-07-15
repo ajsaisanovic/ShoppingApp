@@ -1,0 +1,35 @@
+body{
+    background-image: url("https://image.freepik.com/free-photo/white-fabric-texture-background_38607-761.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.login{
+    margin-top: 20%;
+    margin-left: 30%;
+    background-color: whitesmoke;
+    padding: 20px;
+
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+
+}
+
+.registrujSe{
+    margin-top: 5%;
+    margin-left: 30%;
+    background-color: whitesmoke;
+    padding: 20px;
+
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+
+}
+
+.registrujSe2{
+    margin-top: 5%;
+    margin-left: 10%;
+    background-color: whitesmoke;
+    padding: 20px;
+
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+
+}

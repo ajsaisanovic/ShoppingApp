@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Narudzbe.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Narudzbe.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, {useEffect, useState} from "react";
+import Table from "react-bootstrap/Table";
+import {Button} from "react-bootstrap";
+import Modal from "react-bootstrap/Modal";
+import axios from "axios";
+
+/**
+ * Detalji prikazuju modal u kojem su nam detaljnije informacije o kupcu, to jeste prikazuje
+ * ime,prezime i adresu kupca kako bi administrator znao kome treba poslati proizvod, pored toga ima i
+ * button poslano, na ciji klik evidentiramo da je narudzba poslana.
+ * @param props
+ * @returns {JSX.Element}
+ * @constructor
+ */
+function Detalji(props) {
+    const [kupac,setKupac]=useState([])
+
+
+    function potvrdiNarudzbu(){
+
+        axios.post('http://127.0.0.1:8000/shopping/poslanaNarudzba/',{
+            id:props.idNarudzbe
+
+        }).then(
+            (response)=>{
+                console.log(response)
+                props.onHide()
+            },
+            (error) =>{
+                console.log(error)
+            }
+        )
+
+
+    }
+
+
+    return (
+        &lt;Modal
+            {...props}
+            size="lg"
+            aria-labelledby="contained-modal-title-vcenter"
+            centered
+        >
+            &lt;Modal.Header closeButton>
+                &lt;Modal.Title id="contained-modal-title-vcenter">
+                    Odobri narudzbu
+                &lt;/Modal.Title>
+            &lt;/Modal.Header>
+            &lt;Modal.Body>
+                Narudzba&lt;br/>
+                Kupac: {props.ime} {props.prezime}&lt;br/>
+                Adresa: {props.adresa}&lt;br/>
+                Narudzba: {props.idNarudzbe}&lt;br/>
+
+
+
+            &lt;/Modal.Body>
+            &lt;Modal.Footer>
+                &lt;Button variant="danger" onClick={props.onHide}>Zatvori&lt;/Button>
+                &lt;Button variant="success" onClick={potvrdiNarudzbu}>Poslano&lt;/Button>
+            &lt;/Modal.Footer>
+        &lt;/Modal>
+    );
+}
+
+/***
+ * Komponenta Narudzbe ce biti prikazana samo ukoliko je prijavljen administrator.
+ * Komponenta prikazuje tabelu u kojoj se nalaze sve trenutne narudzbe, prikazuju se sve informacije
+ * o proizvodu koji je narucen (kolicin,cijena,velicina) kao i detalji o kupcu.
+ * @returns {JSX.Element}
+ * @constructor
+ */
+function Narudzbe(){
+    const [idNarudzbe,setIdNarudzbe]=useState()
+    const [idKorisnika,setIdKorisnika]=useState()
+    const [modal,setModal]=useState(false)
+    const [podaci,setPodaci]=useState([])
+   const [ime,setIme]=useState("")
+   const [prezime,setPrezime]=useState("")
+   const [adresa,setAdresa]=useState("")
+    let brojac=0;
+
+    useEffect(()=>{
+        ucitajPodatke()
+    },[modal])
+
+    function ucitajPodatke(){
+        axios.post('http://127.0.0.1:8000/shopping/sveNarudzbe/').then(
+            (response)=>{
+                console.log(response)
+                setPodaci(response.data)
+
+
+            },
+            (error) =>{
+                console.log(error)
+            }
+        )
+    }
+
+    function prikaziDetalje(idN,idK){
+        axios.post('http://127.0.0.1:8000/shopping/detaljiKupca/',{
+            id:idK
+        }).then(
+            (response)=>{
+                console.log("OVDJE")
+                console.log(response.data)
+
+                setIme(response.data.fields.ime)
+                setPrezime(response.data.fields.prezime)
+                setAdresa(response.data.fields.adresa)
+                setIdNarudzbe(idN)
+
+                setModal(true)
+
+            },
+            (error) =>{
+                console.log(error)
+            }
+        )
+
+
+
+    }
+
+    return(
+        &lt;div className="tabela">
+        &lt;Table striped bordered hover>
+            &lt;thead>
+            &lt;tr>
+                &lt;th>#&lt;/th>
+                &lt;th>Proizvod&lt;/th>
+                &lt;th>Količina&lt;/th>
+                &lt;th>Ukupna cijena&lt;/th>
+                &lt;th>Kupac&lt;/th>
+            &lt;/tr>
+            &lt;/thead>
+            &lt;tbody>
+
+            {
+                podaci.map((doc)=>{
+                    brojac++
+                    return &lt;tr>
+                        &lt;td>{brojac}&lt;/td>
+                        &lt;td>{doc.fields.proizvod}&lt;/td>
+                        &lt;td>{doc.fields.kolicina}&lt;/td>
+                        &lt;td>{doc.fields.cijena} KM&lt;/td>
+                        &lt;td>&lt;Button onClick={()=> prikaziDetalje(doc.pk,doc.fields.korisnik)}>Detalji&lt;/Button>&lt;/td>
+                    &lt;/tr>
+                })
+            }
+
+
+
+            &lt;/tbody>
+        &lt;/Table>
+            &lt;Detalji
+                idNarudzbe={idNarudzbe}
+                show={modal}
+                idKorisnika={idKorisnika}
+                adresa={adresa}
+                ime={ime}
+                prezime={prezime}
+                onHide={() => setModal(false)}
+            />
+        &lt;/div>
+    )
+
+
+}
+export default Narudzbe</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Detalji.html">Detalji</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Mon Jul 12 2021 13:34:53 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

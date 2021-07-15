@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Artikli.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Artikli.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, {useEffect, useState} from "react";
+import NavBar from "./NavBar";
+import {Button, Col, Row} from "react-bootstrap";
+
+import ArtikliKartice from "./ArtikliKartice";
+import Form from "react-bootstrap/Form";
+import Narudzbe from "./Narudzbe";
+import axios from "axios";
+
+/**
+ * Komponenta Artikli nam prikazuje pocetnu stranicu aplikacije, koja se razlikuje ukoliko je
+ * prijavljen obicni korisnik i ukoliko je administrator. Naime ako je prijavljen obicni korisnik
+ * imat cemo prikazan navigacijski meni, kao i sve dostupne proizvode. Ukoliko je prijavljen administrator
+ * pored ovoga imas cemo i jos 2 dodatne opcije, a to su forma za dodavanje novog proizvoda, kao i dugme
+ * za prikaz trenutnih narudzbi.
+ * @param info
+ * @param odjava
+ * @param tip
+ * @param id
+ * @returns {JSX.Element}
+ * @constructor
+ */
+function Artikli({info,odjava,tip,id}){
+
+    const [korisnik,setKorisnik]=useState(id)
+    const [podaci,setPodaci]=useState(info)
+    const[proizvodi,setProizvod]=useState([])
+    const [opis,setOpis]=useState("")
+    const [cijena,setCijena]=useState(0)
+    const [slika,setSlika]=useState("")
+    const [forma,setForma]=useState(false)
+    const [narudzbe,setNarudzbe]=useState(false)
+    const [file,setFile]=useState(null)
+
+
+    useEffect(()=>{
+        ucitajProizvode()
+    },[forma])
+    function prikaziFormu(){
+        setForma(!forma)
+    }
+    function prikaziNarudzbe(){
+        setNarudzbe(!narudzbe)
+    }
+
+
+    function ucitajProizvode(){
+        axios.post('http://127.0.0.1:8000/shopping/ucitajProizvode/').then(
+            (response)=>{
+                console.log(response)
+                setProizvod(response.data)
+
+            },
+            (error) =>{
+                console.log(error)
+            }
+        )
+
+    }
+    function dodajProizvod(){
+        axios.post('http://127.0.0.1:8000/shopping/dodajProizvod/',{
+            opis:opis,
+            cijena:cijena,
+            slika:slika
+        }).then(
+            (response)=>{
+               console.log(response)
+                setForma(!forma)
+
+            },
+            (error) =>{
+                console.log(error)
+            }
+        )
+
+    }
+
+    return(
+        &lt;div>
+
+            &lt;NavBar odjava={odjava} ime={info.ime} prezime={info.prezime} status={info.tip_korisnika}/>
+            {tip === "Admin" ?
+                &lt;div>
+                &lt;Button variant="success" className="evidencijaArtikl" onClick={prikaziFormu}>+ dodaj novi
+                    proizvod&lt;/Button>
+                &lt;Button variant="success" className="evidencijaNarudzbe" onClick={prikaziNarudzbe}> Prikazi nove
+                    narudzbe&lt;/Button>
+                &lt;/div>:&lt;div>&lt;/div>
+
+            }{forma?
+            &lt;Form className="dodajArtikl">
+                &lt;Form.Group controlId="formBasicEmail">
+                    &lt;Form.Label>Opis&lt;/Form.Label>
+                    &lt;Form.Control type="text" placeholder="Unesite naziv" onChange={event => setOpis(event.target.value)}/>
+
+                &lt;/Form.Group>
+
+                &lt;Form.Group controlId="formBasicPassword">
+                    &lt;Form.Label>Cijena&lt;/Form.Label>
+                    &lt;Form.Control type="number" min="1" placeholder="Unesite cijenu" onChange={event => setCijena(event.target.value)} />
+                &lt;/Form.Group>
+                &lt;Form.Group controlId="formBasicEmail">
+                    &lt;Form.Label>Slika&lt;/Form.Label>
+                    &lt;Form.Control type="text" placeholder="Unesite naziv" onChange={event => setSlika(event.target.value)}/>
+
+                &lt;/Form.Group>
+
+
+                &lt;Button variant="primary" onClick={dodajProizvod} >
+                    Dodaj proizvod
+                &lt;/Button>
+            &lt;/Form>:&lt;div>&lt;/div>
+            }
+            {
+                narudzbe? &lt;Narudzbe/>:&lt;div>&lt;/div>
+            }
+            &lt;Row>
+
+                     {
+                    proizvodi.map((doc)=>{
+                        return &lt;ArtikliKartice key={doc.pk} ucitaj={ucitajProizvode} idProizvoda={doc.pk} id={id} tip={tip} cijena={doc.fields.cijena} opis={doc.fields.naziv} slika={doc.fields.slika}/>
+                    })
+                }
+
+
+
+
+
+            &lt;/Row>
+
+        &lt;/div>
+    )
+
+}
+
+
+export default Artikli</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Artikli.html">Artikli</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Mon Jul 12 2021 13:31:09 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
